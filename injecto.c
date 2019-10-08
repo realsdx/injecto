@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     long dst; //destiantion addr
 
     if(argc != 2){
-        printf("%sUsage:\t%s <pid>\n", BAD, argv[0]);
+        fprintf(stderr, "%sUsage:\t%s <pid>\n", BAD, argv[0]);
         exit(1);
     }
 
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     printf("%sTarget process id: %d \n", INFO, target);
     
     if(ptrace(PTRACE_ATTACH, target, NULL, NULL) < 0){
-        perror("Error: ATTACH");
+        perror("Error-ATTACH");
         exit(1);
     }
     printf("%sWaiting for process's SIGTRAP...\n", INFO);
@@ -48,11 +48,16 @@ int main(int argc, char *argv[])
 
     printf("%sGetting registers of the process...\n", GOOD);
     if(ptrace(PTRACE_GETREGS, target, NULL, &regs) < 0){
-        perror("Error: GETREGS");
+        perror("Error-GETREGS");
         exit(1);
     }
 
     print_regs(regs);
 
+    if (ptrace(PTRACE_DETACH, target, NULL, NULL)< 0)
+	{
+	  perror("Error-DETACH");
+	  exit(1);
+	}
     return 0;
 }
