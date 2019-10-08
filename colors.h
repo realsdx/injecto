@@ -1,0 +1,13 @@
+#define WHITE "\033[1;97m"
+#define GREEN "\033[1;32m"
+#define BLUE "\033[94m"
+#define RED "\033[1;31m"
+#define YELLOW "\033[1;33m"
+#define MAGENTA "\033[1;35m"
+
+#define END "\033[1;m"
+#define INFO "\033[1;33m[!]\033[1;m"
+#define QUE "\033[1;34m[?]\033[1;m"
+#define BAD "\033[1;31m[-]\033[1;m"
+#define GOOD "\033[1;32m[+]\033[1;m"
+#define RUN "\033[1;97m[~]\033[1;m"
