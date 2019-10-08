@@ -6,9 +6,10 @@
 #include<sys/wait.h>
 #include<sys/types.h>
 #include<unistd.h>
-
 #include<sys/user.h>
 #include<sys/reg.h>
+
+#include "colors.h"
 
 void print_regs(struct user_regs_struct regs)
 {
@@ -31,21 +32,21 @@ int main(int argc, char *argv[])
     long dst; //destiantion addr
 
     if(argc != 2){
-        printf("Usage:\t%s <pid>\n", argv[0]);
+        printf("%sUsage:\t%s <pid>\n", BAD, argv[0]);
         exit(1);
     }
 
     target = atoi(argv[1]);
-    printf("\033[1;33m[!]\033[1;m Target process id: %d \n",target);
+    printf("%sTarget process id: %d \n", INFO, target);
     
     if(ptrace(PTRACE_ATTACH, target, NULL, NULL) < 0){
         perror("Error: ATTACH");
         exit(1);
     }
-    printf("\033[1;33m[!]\033[1;m Waiting for process's SIGTRAP...\n");
+    printf("%sWaiting for process's SIGTRAP...\n", INFO);
     wait(NULL);
 
-    printf("\033[1;32m[+]\033[1;m Getting registers of the process...\n");
+    printf("%sGetting registers of the process...\n", GOOD);
     if(ptrace(PTRACE_GETREGS, target, NULL, &regs) < 0){
         perror("Error: GETREGS");
         exit(1);

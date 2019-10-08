@@ -2,7 +2,7 @@ CC=gcc
 
 default: builds
 
-builds: injecto.c
+builds: injecto.c colors.h
 	gcc injecto.c -o build/injecto
 
 clean:
