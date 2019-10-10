@@ -24,12 +24,30 @@ void print_regs(struct user_regs_struct regs)
     printf("\033[1;32mrcx:\033[1;m%p\n", (void *)regs.rcx);
 }
 
+int inject_code(pid_t pid, unsigned char *data, void *dst, int data_len)
+{
+	int i;
+    uint32_t *data = (uint32_t *)data; //making sure it's a 32bit(4byte) value
+    uint32_t *dst = (uint32_t *)dst; 
+
+    for(i=0; i<data_len; i+=4, data++, dst++){
+        if(ptrace(PTRACE_POKETEXT, pid, dst, data) < 0){
+            perror("Error-POKETEXT");
+            exit(1);
+        }
+    }
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     pid_t target; //target process
     struct user_regs_struct regs;
     int syscall; //syscall id
     long dst; //destiantion addr
+
+    char *shellcode;//TODO
 
     if(argc != 2){
         fprintf(stderr, "%sUsage:\t%s <pid>\n", BAD, argv[0]);
@@ -53,6 +71,9 @@ int main(int argc, char *argv[])
     }
 
     print_regs(regs);
+
+    printf("%sInjecting to the shellcode into %p:%p ...", INFO, (void *)regs.rip, regs.rip);
+    inject_code(target, shellcode, (void *)regs.rip, shellcode_len);
 
     if (ptrace(PTRACE_DETACH, target, NULL, NULL)< 0)
 	{
